@@ -1,0 +1,39 @@
+{
+  "name": "vue-mw-calendar",
+  "version": "0.0.1",
+  "description": "一个vue3日历组件",
+  "author": "syeeling",
+  "private": false,
+  "type": "module",
+  "main": "dist/vue-mw-calendar.es.js",
+  "module": "dist/vue-mw-calendar.es.js",
+  "files": [
+    "dist"
+  ],
+  "keywords": [],
+  "homepage": "",
+  "bugs": {
+    "url": ""
+  },
+  "repository": {
+    "url": ""
+  },
+  "scripts": {
+    "dev": "vite --host --port 80",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "peerDependencies": {
+    "vue": ">=3.5.0"
+  },
+  "dependencies": {
+    "@vueuse/core": "^13.5.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "5.2.4",
+    "postcss-px-to-viewport-8-plugin": "1.2.5",
+    "prettier": "3.6.2",
+    "sass": "1.89.2",
+    "vite": "6.3.5"
+  }
+}

@@ -1,0 +1,25 @@
+@use '../index.scss';
+
+.mw-calendar-container {
+  --calendar-row-height: 120px;
+
+  --calendar-icon-size: 40px;
+
+  --calendar-toolbar-font-size: 32px;
+  --calendar-toolbar-column-gap: 32px;
+  --calendar-toolbar-padding: 24px 32px;
+
+  --calendar-footer-padding: 24px;
+
+  --calendar-weekdays-height: 60px;
+  --calendar-weekdays-font-size: 28px;
+
+  --calendar-days-value-font-size: 28px;
+  --calendar-days-label-font-size: 20px;
+
+  --calendar-days-inner-size: 68px;
+  --calendar-days-inner-padding: 4px;
+
+  --calendar-days-marker-top-gap: 8px;
+  --calendar-days-marker-size: 8px;
+}
