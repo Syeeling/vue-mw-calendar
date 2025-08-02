@@ -1,6 +1,6 @@
 {
   "name": "vue-mw-calendar",
-  "version": "0.0.2",
+  "version": "0.0.3",
   "description": "一个vue3日历组件",
   "author": "syeeling",
   "private": false,

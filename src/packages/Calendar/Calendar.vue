@@ -38,7 +38,7 @@
           :key="dateObj.key"
           :class="{ 'is-selected': isSameDay(dateObj.date, selected), 'other-month': !dateObj.current }"
           class="mw-calendar-day"
-          @click="selectDate(dateObj)"
+          @click="selectDate(dateObj.date)"
         >
           <div class="mw-calendar-day--inner">
             <div class="mw-calendar-day--inner-value">{{ dateObj.fullDate.date }}</div>
@@ -173,6 +173,10 @@ defineExpose({
   // 根据周/月视图，切换到下一月/周(有动画)
   goNext() {
     onTransitionStart('left')
+  },
+  // 切换选中日期至指定日期
+  changeSelectedDate(date) {
+    selectDate(date)
   }
 })
 </script>

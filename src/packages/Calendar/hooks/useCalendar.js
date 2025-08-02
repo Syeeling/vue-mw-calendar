@@ -69,9 +69,12 @@ export function useCalendar({ initialSelectedDate, initialWeekView, weekStart, m
   )
 
   // 切换选中的日期
-  function _selectDate(calendarDate) {
-    if (!isSameDay(calendarDate.date, selected.value)) {
-      selected.value = new Date(calendarDate.date)
+  function _selectDate(date) {
+    if (!isSameDay(date, selected.value)) {
+      selected.value = new Date(date)
+      currentYear.value = date.getFullYear()
+      currentMonth.value = date.getMonth()
+      _setWeekIndex()
       emit('select-change', selected.value)
     }
   }
