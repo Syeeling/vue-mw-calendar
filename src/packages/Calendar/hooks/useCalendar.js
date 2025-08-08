@@ -74,6 +74,7 @@ export function useCalendar({ initialSelectedDate, initialWeekView, weekStart, m
       selected.value = new Date(date)
       currentYear.value = date.getFullYear()
       currentMonth.value = date.getMonth()
+      renderRows.value = visibleRows.value
       _setWeekIndex()
       emit('select-change', selected.value)
     }
