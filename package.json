@@ -1,8 +1,9 @@
 {
   "name": "vue-mw-calendar",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "一个vue3日历组件",
   "author": "syeeling",
+  "license": "MIT",
   "private": false,
   "type": "module",
   "main": "dist/vue-mw-calendar.es.js",
