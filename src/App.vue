@@ -1,12 +1,12 @@
 <template>
   <div class="app-container">
-    <wm-calendar ref="calendarRef" :markerDates :week-start="1" @select-change="onSelectChange" />
+    <mw-calendar ref="calendarRef" :week-start="1" :markerDates @select-change="onSelectChange" />
   </div>
 </template>
 
 <script setup>
 import { useTemplateRef } from 'vue'
-import WmCalendar from './packages/Calendar/Calendar.vue'
+import MwCalendar from './packages/Calendar/Calendar.vue'
 import '/src/packages/Calendar/style/mobile/mobile.scss'
 
 const calendarRef = useTemplateRef('calendarRef')

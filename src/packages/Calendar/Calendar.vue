@@ -8,26 +8,28 @@
       '--transition-duration': transitionDuration
     }"
   >
-    <!-- Toolbar -->
+    <!-- 顶部工具栏 -->
     <div v-if="showToolbar" class="mw-calendar-toolbar">
-      <slot name="toolbar" :year="currentYear" :month="currentMonth" :isWeekView="isWeekView">
-        <div v-html="icons.arrowDoubleLeft" class="mw-calendar-toolbar--icon" @click="changeMonth(-12)" />
-        <div v-html="icons.arrowLeft" class="mw-calendar-toolbar--icon" @click="onTransitionStart('right')" />
+      <slot name="toolbar" :year="currentYear" :month="currentMonth" :viewMode="viewMode">
+        <div v-html="icons.arrowDoubleLeft" class="mw-calendar-toolbar--icon" @click="changePageTo('prev-year')" />
+        <div v-html="icons.arrowLeft" class="mw-calendar-toolbar--icon" @click="changePageTo('prev-page')" />
         <div class="mw-calendar-toolbar--text">{{ headerLabel }}</div>
-        <div v-html="icons.arrowRight" class="mw-calendar-toolbar--icon" @click="onTransitionStart('left')" />
-        <div v-html="icons.arrowDoubleRight" class="mw-calendar-toolbar--icon" @click="changeMonth(12)" />
+        <div v-html="icons.arrowRight" class="mw-calendar-toolbar--icon" @click="changePageTo('next-page')" />
+        <div v-html="icons.arrowDoubleRight" class="mw-calendar-toolbar--icon" @click="changePageTo('next-year')" />
       </slot>
     </div>
 
-    <!-- Weekdays Header -->
+    <!-- 星期栏 -->
     <div v-if="showWeekdays" class="mw-calendar-weekdays">
-      <div v-for="day in weekdays" :key="day" class="mw-calendar-weekdays--weekday">{{ day }}</div>
+      <div v-for="(day, index) in weekdays" :key="day" class="mw-calendar-weekdays--weekday">
+        <slot name="weekday" :weekday="day" :index="(index + weekStart) % 7">{{ day }}</slot>
+      </div>
     </div>
 
-    <!-- Calendar Grid -->
+    <!-- 日历主体 -->
     <div ref="swp" class="mw-calendar-wrapper">
       <div
-        v-for="(item, index) in renderDates"
+        v-for="(item, index) in allRenderDates"
         :key="index"
         :style="{ left: 100 * (index - 1) + '%' }"
         class="mw-calendar-days"
@@ -38,7 +40,7 @@
           :key="dateObj.key"
           :class="{ 'is-selected': isSameDay(dateObj.date, selected), 'other-month': !dateObj.current }"
           class="mw-calendar-day"
-          @click="selectDate(dateObj.date)"
+          @click="changeSelectedDate(dateObj.date)"
         >
           <div class="mw-calendar-day--inner">
             <div class="mw-calendar-day--inner-value">{{ dateObj.fullDate.date }}</div>
@@ -51,28 +53,40 @@
       </div>
     </div>
 
-    <!-- Calendar Footer -->
+    <!-- 底部工具栏 -->
     <div v-if="showFooter" class="mw-calendar-footer">
-      <div v-html="isWeekView ? icons.arrowDown : icons.arrowUp" class="mw-calendar-footer--icon" @click="toggleView" />
+      <slot name="footer" :year="currentYear" :month="currentMonth" :viewMode="viewMode">
+        <div
+          v-html="viewMode === 'week' ? icons.arrowDown : icons.arrowUp"
+          class="mw-calendar-footer--icon"
+          @click="toggleViewMode"
+        />
+      </slot>
     </div>
   </div>
 </template>
 
 <script setup>
-import { useTemplateRef, toRefs, computed } from 'vue'
+import { computed, useTemplateRef, toRefs } from 'vue'
 import { useSwipe } from '@vueuse/core'
 import { useCalendar } from './hooks/useCalendar.js'
-import { isSameDay } from './utils'
+import { isSameDay, createWeekdays } from './utils'
 import { icons } from './utils/icons.js'
 
-const emit = defineEmits(['select-change'])
 const swipeRef = useTemplateRef('swp')
+
+const emit = defineEmits(['select-change', 'view-change'])
 
 const props = defineProps({
   // 初始选中的日期
   initialSelectedDate: {
     type: Date,
     default: () => new Date()
+  },
+  // 初始视图模式
+  initialViewMode: {
+    type: String,
+    default: 'month' // month or week
   },
   // 以周几作为每周的起始
   weekStart: {
@@ -83,11 +97,6 @@ const props = defineProps({
   markerDates: {
     type: Array,
     default: () => []
-  },
-  // 初始是否为周视图
-  initialWeekView: {
-    type: Boolean,
-    default: false
   },
   // 是否显示顶部工具栏
   showToolbar: {
@@ -111,44 +120,111 @@ const props = defineProps({
   }
 })
 
-const { initialSelectedDate, initialWeekView, weekStart, markerDates, duration } = toRefs(props)
+const { initialSelectedDate, initialViewMode, weekStart, markerDates, duration } = toRefs(props)
 
 const {
   selected,
-  renderDates,
-  isWeekView,
-  weekdays,
+  viewMode,
   currentYear,
   currentMonth,
-  markerDateList,
+  currentRenderDates,
+  allRenderDates,
   transformDistance,
   transitionDuration,
+  isInTransition,
   renderRows,
-  isSwiping,
-  selectDate,
-  toggleView,
-  changeMonth,
-  onTransitionStart,
-  onTransitionEnd
-} = useCalendar({ initialSelectedDate, initialWeekView, weekStart, markerDates, duration }, emit)
+  switchPageToTargetDate,
+  startTransitionAnimation,
+  onTransitionEnd,
+  toggleViewMode
+} = useCalendar({ initialSelectedDate, initialViewMode, weekStart, duration }, emit)
 
 // 顶部工具栏标题
 const headerLabel = computed(() => `${currentYear.value}年${currentMonth.value + 1}月`)
+// 星期栏
+const weekdays = createWeekdays(weekStart.value)
+// 标记日期
+const markerDateList = computed(() =>
+  markerDates.value.map(item => ({
+    date: new Date(typeof item === 'object' && item.date ? item.date : item),
+    color: typeof item === 'object' && item.color ? item.color : 'var(--calendar-theme-color)'
+  }))
+)
 
 // 监听滑动事件
 const { lengthX } = useSwipe(swipeRef, {
-  threshold: 0, // 滑动阈值
+  // 滑动阈值
+  threshold: 0,
   // 手指滑动过程中
   onSwipe: () => {
-    if (isSwiping.value) return
+    if (isInTransition.value) return
     transformDistance.value = -lengthX.value + 'px'
   },
   // 手指抬起滑动结束，开始滑动动画
   onSwipeEnd: (_, direction) => {
-    if (isSwiping.value) return
-    onTransitionStart(direction)
+    if (isInTransition.value) return
+    if (direction === 'left') {
+      changePageTo('next-page')
+    } else if (direction === 'right') {
+      changePageTo('prev-page')
+    } else {
+      // 如果方向不是左右，则将页面复位
+      startTransitionAnimation(direction)
+    }
   }
 })
+
+// 归一化参数
+// 支持 'prev-page', 'next-page', 'prev-year', 'next-year', 以及合法的日期
+function _normalize(param) {
+  if (!param) {
+    throw new Error('参数不能为空')
+  }
+  if (param === 'prev-page') {
+    if (viewMode.value === 'week') {
+      return new Date(
+        new Date(currentRenderDates.value[0].date).setDate(currentRenderDates.value[0].date.getDate() - 1)
+      )
+    } else if (viewMode.value === 'month') {
+      return new Date(currentYear.value, currentMonth.value - 1)
+    }
+  }
+  if (param === 'next-page') {
+    if (viewMode.value === 'week') {
+      return new Date(
+        new Date(currentRenderDates.value[6].date).setDate(currentRenderDates.value[6].date.getDate() + 1)
+      )
+    } else if (viewMode.value === 'month') {
+      return new Date(currentYear.value, currentMonth.value + 1)
+    }
+  }
+  if (param === 'prev-year') {
+    return new Date(currentYear.value - 1, currentMonth.value)
+  }
+  if (param === 'next-year') {
+    return new Date(currentYear.value + 1, currentMonth.value)
+  }
+  const targetDate = new Date(param)
+  if (!Number.isNaN(targetDate.getTime())) {
+    return targetDate
+  }
+  throw new Error('日期不合法')
+}
+
+// 切换日历页面
+function changePageTo(param) {
+  const targetDate = _normalize(param)
+  switchPageToTargetDate(targetDate)
+}
+
+// 切换选中的日期
+function changeSelectedDate(date) {
+  changePageTo(date)
+  if (!isSameDay(new Date(date), selected.value)) {
+    selected.value = new Date(date)
+    emit('select-change', selected.value)
+  }
+}
 
 // 获取 marker 颜色
 function _getMarkerColor(date) {
@@ -157,26 +233,10 @@ function _getMarkerColor(date) {
 
 defineExpose({
   // 切换周/月视图
-  toggleView,
-  // 切换到上一年(无动画)
-  goPrevYear() {
-    changeMonth(-12)
-  },
-  // 切换到下一年(无动画)
-  goNextYear() {
-    changeMonth(12)
-  },
-  // 根据周/月视图，切换到上一月/周(有动画)
-  goPrev() {
-    onTransitionStart('right')
-  },
-  // 根据周/月视图，切换到下一月/周(有动画)
-  goNext() {
-    onTransitionStart('left')
-  },
-  // 切换选中日期至指定日期
-  changeSelectedDate(date) {
-    selectDate(date)
-  }
+  toggleViewMode,
+  // 切换日历页
+  changePageTo,
+  // 切换选中日期
+  changeSelectedDate
 })
 </script>

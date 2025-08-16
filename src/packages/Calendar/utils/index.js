@@ -11,6 +11,11 @@ export class CalendarDate {
   }
 }
 
+export function createWeekdays(index) {
+  const WEEK_DAYS = ['日', '一', '二', '三', '四', '五', '六']
+  return WEEK_DAYS.slice(index).concat(WEEK_DAYS.slice(0, index))
+}
+
 export function isSameDay(date1, date2) {
   return (
     date1.getFullYear() === date2.getFullYear() &&
@@ -19,14 +24,9 @@ export function isSameDay(date1, date2) {
   )
 }
 
-export function changeMonth(year, month, dir) {
-  const totalMonths = year * 12 + month + dir
-  const newYear = Math.floor(totalMonths / 12)
-  const newMonth = ((totalMonths % 12) + 12) % 12
-  return { year: newYear, month: newMonth }
-}
-
-export function createMonthDates(year, month, index) {
+export function createMonthDates(date, index) {
+  const year = date.getFullYear()
+  const month = date.getMonth()
   const monthFirstDate = new Date(year, month, 1) // 当月第一天
   const monthLastDate = new Date(year, month + 1, 0) // 当月最后一天
   const firstDateOfWeekIndex = (monthFirstDate.getDay() - index + 7) % 7 // 调整为指定周起始日的索引
@@ -48,6 +48,19 @@ export function createMonthDates(year, month, index) {
   for (let i = 1; i <= extra; i++) {
     const d = new Date(year, month + 1, i)
     const cDate = new CalendarDate(d, false)
+    dates.push(cDate)
+  }
+  return dates
+}
+
+export function createWeekDates(date, index) {
+  const weekDay = date.getDay() // 获取当前日期是星期几
+  const offsetToStart = (weekDay - index + 7) % 7
+  const startDate = new Date(date.getFullYear(), date.getMonth(), date.getDate() - offsetToStart)
+  const dates = []
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate() + i)
+    const cDate = new CalendarDate(d, d.getMonth() === date.getMonth())
     dates.push(cDate)
   }
   return dates
