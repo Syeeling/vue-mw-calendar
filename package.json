@@ -1,6 +1,6 @@
 {
   "name": "vue-mw-calendar",
-  "version": "0.0.4",
+  "version": "0.1.0",
   "description": "一个vue3日历组件",
   "author": "syeeling",
   "license": "MIT",
@@ -18,13 +18,13 @@
     "calendar",
     "vue-mw-calendar"
   ],
-  "homepage": "",
+  "homepage": "https://github.com/Syeeling/vue-mw-calendar?tab=readme-ov-file#vue-md-calendar",
   "bugs": {
-    "url": ""
+    "url": "https://github.com/Syeeling/vue-mw-calendar/issues"
   },
   "repository": {
     "type": "git",
-    "url": ""
+    "url": "https://github.com/Syeeling/vue-mw-calendar"
   },
   "scripts": {
     "dev": "vite --host --port 80",
