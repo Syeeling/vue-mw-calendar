@@ -1,4 +1,4 @@
-# vue-md-calendar
+# vue-mw-calendar
 
 ![vue](https://img.shields.io/npm/dependency-version/vue-mw-calendar/peer/vue?color=42B883 "vue")
 [![npm](https://img.shields.io/npm/v/vue-mw-calendar?label=npm "npm")](https://www.npmjs.com/package/vue-mw-calendar)
